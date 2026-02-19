@@ -26,6 +26,9 @@ htmlcov/
 # Alembic (never commit auto-generated __pycache__ inside versions)
 alembic/versions/__pycache__/
 
+# Scratch / local exploration
+scratch*.py
+
 # IDE
 .vscode/
 .idea/
