@@ -14,9 +14,7 @@ from sqlalchemy.orm import DeclarativeBase
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    database_url: str = (
-        "postgresql+asyncpg://***REDACTED***@localhost:5433/optimizer"
-    )
+    database_url: str
 
 
 settings = Settings()

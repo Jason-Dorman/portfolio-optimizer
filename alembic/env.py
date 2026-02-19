@@ -1,7 +1,6 @@
 """Alembic env.py — configured for async SQLAlchemy (asyncpg)."""
 
 import asyncio
-import os
 from logging.config import fileConfig
 
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -14,16 +13,14 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Import Base and register all ORM models so Alembic can detect schema changes.
-from src.infrastructure.database import Base  # noqa: E402
+# Import Base, settings, and register all ORM models so Alembic can detect schema changes.
+from src.infrastructure.database import Base, settings  # noqa: E402
 import src.infrastructure.persistence.models  # noqa: E402, F401
 
 target_metadata = Base.metadata
 
-# Prefer DATABASE_URL env var over alembic.ini value.
-DATABASE_URL = os.environ.get("DATABASE_URL") or config.get_main_option(
-    "sqlalchemy.url"
-)
+# settings already loads DATABASE_URL from the .env file via pydantic-settings.
+DATABASE_URL = settings.database_url
 
 
 def run_migrations_offline() -> None:
