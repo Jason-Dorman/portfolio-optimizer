@@ -15,8 +15,8 @@ from src.domain.models import (
 )
 
 
-def test_domain_models_exports_40_names():
-    assert len(domain_all) == 40
+def test_domain_models_exports_44_names():
+    assert len(domain_all) == 44
 
 
 def test_asset_class_importable_from_package():

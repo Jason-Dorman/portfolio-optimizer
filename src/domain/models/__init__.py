@@ -6,7 +6,14 @@ application code to individual module paths.
 """
 
 from .assets import Asset, Universe, UniverseAsset
-from .assumptions import AssetStats, AssumptionSet, CovarianceEntry, CovarianceMatrix
+from .assumptions import (
+    AssetStats,
+    AssumptionSet,
+    CorrelationEntry,
+    CorrelationMatrix,
+    CovarianceEntry,
+    CovarianceMatrix,
+)
 from .backtest import BacktestConfig, BacktestPoint, BacktestRun, BacktestSummary
 from .drift import DriftCheck, DriftPosition
 from .enums import (
@@ -25,6 +32,7 @@ from .enums import (
     UniverseType,
 )
 from .holdings import HoldingsPosition, HoldingsSnapshot
+from .market_data import PriceBar, ReturnPoint
 from .optimization import (
     AssetBound,
     OptimizationConstraints,
@@ -58,11 +66,16 @@ __all__ = [
     # holdings
     "HoldingsPosition",
     "HoldingsSnapshot",
+    # market data
+    "PriceBar",
+    "ReturnPoint",
     # assumptions
     "AssetStats",
     "AssumptionSet",
     "CovarianceEntry",
     "CovarianceMatrix",
+    "CorrelationEntry",
+    "CorrelationMatrix",
     # screening
     "ScoreWeights",
     "ScreeningConfig",
