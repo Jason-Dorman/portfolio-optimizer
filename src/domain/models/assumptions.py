@@ -179,3 +179,51 @@ class AssumptionSet(BaseModel):
             cov_method=cov_method,
             annualization_factor=factor,
         )
+
+
+class CorrelationEntry(BaseModel):
+    """One cell of the upper-triangle correlation matrix.
+
+    Storage invariant: asset_id_i ≤ asset_id_j (UUID lexicographic order).
+    corr is in [−1, 1]; diagonal entries (i == j) are always 1.0.
+    The constructor auto-canonicalises the order so callers don't pre-sort.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    assumption_id: UUID
+    asset_id_i: UUID
+    asset_id_j: UUID
+    corr: float = Field(ge=-1.0, le=1.0)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _canonicalize_order(cls, data: dict[str, object]) -> dict[str, object]:
+        """Ensure asset_id_i ≤ asset_id_j so only the upper triangle is stored."""
+        i = data.get("asset_id_i")
+        j = data.get("asset_id_j")
+        if i is not None and j is not None and str(i) > str(j):
+            data["asset_id_i"], data["asset_id_j"] = j, i
+        return data
+
+
+class CorrelationMatrix(BaseModel):
+    """Full correlation matrix for an assumption set.
+
+    Entries cover the upper triangle only (i ≤ j).  Symmetry is reconstructed
+    at lookup time via get_correlation(). Diagonal entries (i == j) are 1.0.
+
+    Derived from CovarianceMatrix: corr(i,j) = cov(i,j) / (σ_i × σ_j).
+    """
+
+    assumption_id: UUID
+    entries: list[CorrelationEntry]
+
+    def get_correlation(self, asset_id_i: UUID, asset_id_j: UUID) -> float | None:
+        """Return corr(i, j), checking both orderings (upper-triangle canonical)."""
+        a = min(str(asset_id_i), str(asset_id_j))
+        b = max(str(asset_id_i), str(asset_id_j))
+        for entry in self.entries:
+            if str(entry.asset_id_i) == a and str(entry.asset_id_j) == b:
+                return entry.corr
+        return None
