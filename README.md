@@ -1,6 +1,6 @@
 # Portfolio Optimizer & Rebalancer
 
-This project is under construction.
+This project is in development.
 
 ## Requirements
 
