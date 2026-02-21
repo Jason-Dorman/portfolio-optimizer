@@ -60,6 +60,8 @@ class ScreeningRun(Base):
     )
     # Weight assumed when computing marginal vol reduction (default 5%)
     nominal_add_weight: Mapped[float] = mapped_column(Double, nullable=False, default=0.05)
+    # Minimum weight in reference portfolio for an asset class to be 'represented' (default 2%)
+    sector_gap_threshold: Mapped[float] = mapped_column(Double, nullable=False, default=0.02)
     # e.g. {"correlation": 0.4, "marginal_vol": 0.3, "sector_gap": 0.15, "hhi": 0.15}
     score_weights: Mapped[dict] = mapped_column(JSONB, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
