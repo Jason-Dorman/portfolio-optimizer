@@ -23,6 +23,7 @@ class PriceBar(BaseModel):
     close is the raw unadjusted close; retained for reference but not used in analytics.
     volume is share volume; None for assets where volume is unavailable or irrelevant.
     pulled_at records when the bar was fetched from the data vendor.
+    vendor_id is the data provider UUID; required for persistence (price_bars PK includes it).
     """
 
     model_config = ConfigDict(frozen=True)
@@ -34,6 +35,7 @@ class PriceBar(BaseModel):
     close: float | None = Field(default=None, gt=0.0)
     volume: int | None = Field(default=None, ge=0)
     pulled_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    vendor_id: UUID | None = None  # required when persisting; populated on read
 
 
 class ReturnPoint(BaseModel):
