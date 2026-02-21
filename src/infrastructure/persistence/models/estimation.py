@@ -18,7 +18,8 @@ class AssumptionSet(Base):
 
     estimator and cov_method are independent:
       estimator  — controls how µ is computed (historical / ewma / shrinkage)
-      cov_method — controls how Σ is computed (sample / ledoit_wolf / nearest_psd)
+      cov_method — controls how Σ is computed (sample / ledoit_wolf); PSD repair
+                   is tracked separately via psd_repair_applied / psd_repair_note
     """
 
     __tablename__ = "assumption_sets"
@@ -36,7 +37,7 @@ class AssumptionSet(Base):
     annualization_factor: Mapped[int] = mapped_column(Integer, nullable=False)  # 252 / 12 / …
     rf_annual: Mapped[float] = mapped_column(Double, nullable=False)
     estimator: Mapped[str] = mapped_column(Text, nullable=False)          # historical / ewma / shrinkage
-    cov_method: Mapped[str] = mapped_column(Text, nullable=False)         # sample / ledoit_wolf / nearest_psd
+    cov_method: Mapped[str] = mapped_column(Text, nullable=False)         # sample / ledoit_wolf
     psd_repair_applied: Mapped[bool] = mapped_column(Boolean, nullable=False)
     psd_repair_note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
