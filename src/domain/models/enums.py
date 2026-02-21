@@ -62,6 +62,15 @@ class CovMethod(str, Enum):
 
     SAMPLE = "sample"
     LEDOIT_WOLF = "ledoit_wolf"
+
+
+class CovRepair(str, Enum):
+    """Post-estimation covariance repair method.
+
+    Separate from CovMethod because repair is applied after estimation,
+    not as an alternative estimator.
+    """
+
     NEAREST_PSD = "nearest_psd"
 
 

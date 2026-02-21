@@ -4,6 +4,7 @@ from src.domain.models.enums import (
     AssetClass,
     BacktestStrategy,
     CovMethod,
+    CovRepair,
     Estimator,
     Frequency,
     Geography,
@@ -63,6 +64,14 @@ def test_estimator_historical_value():
 
 def test_cov_method_ledoit_wolf_value():
     assert CovMethod.LEDOIT_WOLF == "ledoit_wolf"
+
+
+def test_cov_repair_nearest_psd_value():
+    assert CovRepair.NEAREST_PSD == "nearest_psd"
+
+
+def test_cov_method_has_no_nearest_psd():
+    assert not any(m.value == "nearest_psd" for m in CovMethod)
 
 
 def test_optimization_status_success_value():
