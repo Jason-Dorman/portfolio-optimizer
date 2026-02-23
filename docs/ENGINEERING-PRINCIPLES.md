@@ -54,6 +54,12 @@
 - Single focused purpose
 - All methods support that purpose
 - Changes stay localized
+
+### Cyclomatic Complexity
+
+- Score should be under 10 but 5 is more ideal
+- If the score is higher than 10 is there opportunities to break the method into smaller logical chuncks 
+- If the domain complexity requires a more complex method that is acceptable.
  
 ---
  
