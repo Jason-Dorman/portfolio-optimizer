@@ -10,6 +10,7 @@
 ## Completed Services
 - `src/domain/services/screening.py` — ScreeningService (4 signals, composite score)
 - `src/domain/services/optimization.py` — OptimizationService (MVP, frontier, tangency, risk decomp)
+- `src/domain/services/drift.py` — DriftService (growth factors, implied weights, breach detection)
 
 ## Optimization Service Design Decisions (approved by PO)
 - **Return type**: `SolverResult` dataclass (no UUIDs). Command handlers wrap into `OptimizationRun`.
@@ -18,6 +19,13 @@
 - **Explanation**: `_generate_explanation(result, weights, assets, constraints)` — weights param added.
 - **Per-asset bounds**: Require `asset_ids: list[UUID] | None = None` to resolve UUID → column. Silently ignored with warning when None.
 - **Solver**: `scipy.optimize.minimize` (SLSQP). Handles both convex (variance) and non-convex (Sharpe) objectives.
+
+## DriftService Design Decisions (approved by PO)
+- **Return type**: `DriftResult` dataclass (frozen, no run_id). Command handler wraps into `DriftCheck`.
+- **Asset tickers**: `asset_tickers: dict[UUID, str]` — lighter coupling than passing `Asset` objects.
+- **Prices DataFrame**: UUID columns matching `target_weights` keys; DatetimeIndex.
+- **Partial overlap**: assets in `target_weights` absent from prices are silently excluded (logged).
+- **raw_positions**: `list[tuple[UUID, float, float, str | None]]` — directly passable to `DriftCheck.create()`.
 
 ## Key Patterns
 - Services are stateless pure-computation classes (no DB, no UUIDs at service layer)
