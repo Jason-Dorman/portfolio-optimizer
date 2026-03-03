@@ -11,6 +11,7 @@
 - `src/domain/services/screening.py` — ScreeningService (4 signals, composite score)
 - `src/domain/services/optimization.py` — OptimizationService (MVP, frontier, tangency, risk decomp)
 - `src/domain/services/drift.py` — DriftService (growth factors, implied weights, breach detection)
+- `src/domain/services/backtest.py` — BacktestService (rolling window, EW/MVP/Tangency, tx costs, TE/IR)
 
 ## Optimization Service Design Decisions (approved by PO)
 - **Return type**: `SolverResult` dataclass (no UUIDs). Command handlers wrap into `OptimizationRun`.
@@ -19,6 +20,17 @@
 - **Explanation**: `_generate_explanation(result, weights, assets, constraints)` — weights param added.
 - **Per-asset bounds**: Require `asset_ids: list[UUID] | None = None` to resolve UUID → column. Silently ignored with warning when None.
 - **Solver**: `scipy.optimize.minimize` (SLSQP). Handles both convex (variance) and non-convex (Sharpe) objectives.
+
+## BacktestService Design Decisions (approved by PO)
+- **Return type**: `BacktestResult` dataclass (no UUIDs). Command handler wraps into `BacktestRun`.
+- **run_backtest signature**: Added `annualization_factor: int` param (PO-approved).
+- **BacktestConfig changes**: Added `rf: float = 0.0`; changed `constraints: dict` → `OptimizationConstraints`.
+- **Estimation**: Always uses `HISTORICAL` mean + `SAMPLE` covariance on the lookback window slice.
+- **Rebalancing**: Always forces rebalance on first period. Calendar dates mapped via `_map_to_actual_dates`.
+- **Weights drift**: `actual_weights` drifted after each period via `growth / growth.sum()`.
+- **VaR/CVaR clamping**: Both clamped to `max(0.0, ...)` — loss magnitudes cannot be negative.
+- **Threshold rebalancing**: Compares drifted `actual_weights` vs `target_weights` (last rebalance).
+- **Benchmark**: `_collect_benchmark_array` returns None if ANY period lacks benchmark (avoids partial TE).
 
 ## DriftService Design Decisions (approved by PO)
 - **Return type**: `DriftResult` dataclass (frozen, no run_id). Command handler wraps into `DriftCheck`.

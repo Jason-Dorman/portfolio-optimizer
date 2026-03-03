@@ -14,6 +14,7 @@ from uuid import UUID, uuid4
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .enums import BacktestStrategy, RebalFrequency
+from .optimization import OptimizationConstraints
 
 
 class BacktestConfig(BaseModel):
@@ -24,6 +25,10 @@ class BacktestConfig(BaseModel):
 
     transaction_cost_bps is expressed in basis points (e.g. 10 = 10 bps = 0.10 %).
     Internally the cost model is: cost = (transaction_cost_bps / 10_000) × turnover.
+
+    rf is the annualized risk-free rate used for Sharpe and tangency optimization.
+    constraints is an OptimizationConstraints instance passed to the solver on each
+    rebalance; defaults to long-only unconstrained.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -33,7 +38,10 @@ class BacktestConfig(BaseModel):
     rebal_threshold: float | None = Field(default=None, gt=0.0, le=1.0)
     window_length: int = Field(gt=0)  # lookback in periods (consistent with frequency)
     transaction_cost_bps: float = Field(default=0.0, ge=0.0)
-    constraints: dict[str, object] = Field(default_factory=dict)
+    rf: float = Field(default=0.0, ge=0.0)
+    constraints: OptimizationConstraints = Field(
+        default_factory=OptimizationConstraints.long_only_unconstrained
+    )
 
     @model_validator(mode="after")
     def _threshold_required_when_freq_threshold(self) -> BacktestConfig:
