@@ -92,5 +92,5 @@ def test_all_models_registered_in_base_metadata():
     assert "drift_check_positions" in registered
 
 
-def test_models_package_exports_24_classes():
-    assert len(models_all) == 24
+def test_models_package_exports_25_classes():
+    assert len(models_all) == 25

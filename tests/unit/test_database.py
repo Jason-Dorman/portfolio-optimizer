@@ -8,7 +8,8 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
-from src.infrastructure.database import AsyncSessionLocal, Base, Settings, engine
+from src.config import Settings
+from src.infrastructure.database import AsyncSessionLocal, Base, engine
 
 
 def test_settings_default_url_uses_asyncpg():
