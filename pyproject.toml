@@ -25,6 +25,9 @@ dependencies = [
     "uvicorn[standard]>=0.29",
     "pydantic>=2.7",
     "pydantic-settings>=2.2",
+    # Auth / SSL
+    "cryptography>=42.0",
+    "authlib>=1.3",
     # HTTP client (vendor data fetching)
     "httpx>=0.27",
     # Frontend

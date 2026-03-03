@@ -46,6 +46,9 @@ from src.infrastructure.persistence.models.drift import (
     DriftCheck,
     DriftCheckPosition,
 )
+from src.infrastructure.persistence.models.auth import (
+    OAuthToken,
+)
 
 __all__ = [
     # Reference
@@ -81,4 +84,6 @@ __all__ = [
     # Drift
     "DriftCheck",
     "DriftCheckPosition",
+    # Auth
+    "OAuthToken",
 ]
