@@ -14,7 +14,7 @@ from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-_DEFAULT_THRESHOLD = 0.05  # 5 percentage points
+DRIFT_THRESHOLD_DEFAULT: float = 0.05  # 5 percentage points (FR13)
 
 
 class DriftPosition(BaseModel):
@@ -68,7 +68,7 @@ class DriftCheck(BaseModel):
     drift_id: UUID = Field(default_factory=uuid4)
     run_id: UUID
     check_date: date
-    threshold_pct: float = Field(default=_DEFAULT_THRESHOLD, gt=0.0, le=1.0)
+    threshold_pct: float = Field(default=DRIFT_THRESHOLD_DEFAULT, gt=0.0, le=1.0)
     any_breach: bool
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     positions: list[DriftPosition] = Field(default_factory=list)
@@ -80,7 +80,7 @@ class DriftCheck(BaseModel):
         check_date: date,
         raw_positions: list[tuple[UUID, float, float, str | None]],
         # each tuple: (asset_id, target_weight, current_weight, explanation_if_breached)
-        threshold_pct: float = _DEFAULT_THRESHOLD,
+        threshold_pct: float = DRIFT_THRESHOLD_DEFAULT,
     ) -> DriftCheck:
         """Build a DriftCheck from raw weight pairs.
 

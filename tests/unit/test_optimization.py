@@ -297,6 +297,60 @@ class TestOptimizeMvp:
         assert isinstance(result.explanation, str)
         assert len(result.explanation) > 0
 
+    def test_infeasible_when_min_bounds_exceed_unity(
+        self,
+        svc: OptimizationService,
+        mu2: np.ndarray,
+        sigma2_equal_var: np.ndarray,
+    ) -> None:
+        """Line 139: optimize_mvp returns infeasible when asset min bounds sum > 1."""
+        ids = [uuid4(), uuid4()]
+        constraints = OptimizationConstraints(
+            long_only=True,
+            asset_bounds=[
+                AssetBound(asset_id=ids[0], min_weight=0.7, max_weight=1.0),
+                AssetBound(asset_id=ids[1], min_weight=0.7, max_weight=1.0),
+            ],
+        )
+        result = svc.optimize_mvp(mu2, sigma2_equal_var, constraints)
+        assert not result.is_feasible
+        assert result.infeasibility_reason is not None
+
+    def test_leverage_cap_constraint_exercised(
+        self,
+        svc: OptimizationService,
+        mu2: np.ndarray,
+        sigma2_equal_var: np.ndarray,
+    ) -> None:
+        """Lines 434-435: leverage cap added to scipy constraint list."""
+        constraints = OptimizationConstraints(long_only=False, leverage_cap=1.5)
+        result = svc.optimize_mvp(mu2, sigma2_equal_var, constraints)
+        assert result.is_feasible
+        assert float(np.sum(np.abs(result.weights))) <= 1.5 + 1e-4
+
+    def test_per_asset_bounds_applied_when_asset_ids_provided(
+        self,
+        svc: OptimizationService,
+        mu2: np.ndarray,
+        sigma2_unequal_var: np.ndarray,
+    ) -> None:
+        """Lines 487-489: per-asset upper bounds enforced via asset_ids mapping.
+
+        Unconstrained MVP for σ = diag([0.01, 0.09]) is [0.9, 0.1].
+        Capping asset 0 at 0.30 forces redistribution.
+        """
+        ids = [uuid4(), uuid4()]
+        constraints = OptimizationConstraints(
+            long_only=True,
+            asset_bounds=[
+                AssetBound(asset_id=ids[0], min_weight=0.0, max_weight=0.30),
+                AssetBound(asset_id=ids[1], min_weight=0.0, max_weight=1.0),
+            ],
+        )
+        result = svc.optimize_mvp(mu2, sigma2_unequal_var, constraints, asset_ids=ids)
+        assert result.is_feasible
+        assert result.weights[0] <= 0.30 + 1e-4
+
 
 # ═══════════════════════════════════════════════════════════════════════════ #
 # optimize_frontier_point                                                      #
@@ -508,6 +562,25 @@ class TestComputeEfficientFrontier:
         frontier = svc.compute_efficient_frontier(mu, sigma, long_only, n_points=10)
         assert len(frontier) == 1
 
+    def test_returns_single_infeasible_when_mvp_infeasible(
+        self,
+        svc: OptimizationService,
+        mu2: np.ndarray,
+        sigma2_equal_var: np.ndarray,
+    ) -> None:
+        """Line 275: frontier short-circuits with [mvp] when MVP is infeasible."""
+        ids = [uuid4(), uuid4()]
+        constraints = OptimizationConstraints(
+            long_only=True,
+            asset_bounds=[
+                AssetBound(asset_id=ids[0], min_weight=0.7, max_weight=1.0),
+                AssetBound(asset_id=ids[1], min_weight=0.7, max_weight=1.0),
+            ],
+        )
+        frontier = svc.compute_efficient_frontier(mu2, sigma2_equal_var, constraints)
+        assert len(frontier) == 1
+        assert not frontier[0].is_feasible
+
 
 # ═══════════════════════════════════════════════════════════════════════════ #
 # compute_risk_decomposition                                                   #
@@ -686,6 +759,37 @@ class TestGenerateExplanation:
         assert not result.is_feasible
         assert result.infeasibility_reason in result.explanation
 
+    def test_description_includes_per_asset_bounds_count(
+        self,
+        svc: OptimizationService,
+        mu2: np.ndarray,
+        sigma2_equal_var: np.ndarray,
+    ) -> None:
+        """Line 591: _describe_constraints appends asset bounds count."""
+        ids = [uuid4(), uuid4()]
+        constraints = OptimizationConstraints(
+            long_only=True,
+            asset_bounds=[
+                AssetBound(asset_id=ids[0], min_weight=0.0, max_weight=0.8),
+                AssetBound(asset_id=ids[1], min_weight=0.0, max_weight=0.8),
+            ],
+        )
+        result = svc.optimize_mvp(mu2, sigma2_equal_var, constraints, asset_ids=ids)
+        assert result.is_feasible
+        assert "per-asset bounds" in result.explanation
+
+    def test_description_includes_leverage_cap(
+        self,
+        svc: OptimizationService,
+        mu2: np.ndarray,
+        sigma2_equal_var: np.ndarray,
+    ) -> None:
+        """Line 593: _describe_constraints appends leverage cap."""
+        constraints = OptimizationConstraints(long_only=False, leverage_cap=2.0)
+        result = svc.optimize_mvp(mu2, sigma2_equal_var, constraints)
+        assert result.is_feasible
+        assert "leverage" in result.explanation
+
 
 # ═══════════════════════════════════════════════════════════════════════════ #
 # Edge cases                                                                   #
@@ -741,3 +845,40 @@ class TestEdgeCases:
         # Single asset: CRC = σ_p = 0.2, PRC = 1.0
         assert abs(float(decomp.crc[0]) - 0.2) < 1e-6
         assert abs(float(decomp.prc[0]) - 1.0) < 1e-6
+
+    def test_short_allowed_clean_weights_branch(
+        self,
+        svc: OptimizationService,
+        mu2: np.ndarray,
+        sigma2_equal_var: np.ndarray,
+    ) -> None:
+        """Line 577: _clean_weights takes the short-allowed (not long_only) branch."""
+        constraints = OptimizationConstraints(long_only=False)
+        result = svc.optimize_mvp(mu2, sigma2_equal_var, constraints)
+        assert result.is_feasible
+        assert abs(np.sum(result.weights) - 1.0) < 1e-6
+
+    def test_asset_bounds_ignored_with_warning_when_asset_ids_none(
+        self,
+        svc: OptimizationService,
+        mu2: np.ndarray,
+        sigma2_equal_var: np.ndarray,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """Lines 475-480: asset_bounds silently ignored when asset_ids is None.
+
+        Equal-variance MVP is [0.5, 0.5] unconstrained. Upper bounds of 0.3
+        would prevent this, but without asset_ids they are not applied.
+        """
+        ids = [uuid4(), uuid4()]
+        constraints = OptimizationConstraints(
+            long_only=True,
+            asset_bounds=[
+                AssetBound(asset_id=ids[0], min_weight=0.0, max_weight=0.3),
+                AssetBound(asset_id=ids[1], min_weight=0.0, max_weight=0.3),
+            ],
+        )
+        result = svc.optimize_mvp(mu2, sigma2_equal_var, constraints)
+        assert result.is_feasible
+        assert np.allclose(result.weights, [0.5, 0.5], atol=1e-4)
+        assert "per-asset bounds ignored" in caplog.text
