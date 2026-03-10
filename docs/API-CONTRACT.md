@@ -329,8 +329,8 @@ IngestPricesRequest:
       $ref: "#/Frequency"
     vendor:
       type: string
-      enum: [polygon, tiingo, alphavantage]
-      default: "polygon"
+      enum: [schwab]
+      default: "schwab"
 
 IngestRiskFreeRequest:
   type: object

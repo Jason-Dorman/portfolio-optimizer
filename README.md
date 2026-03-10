@@ -32,9 +32,12 @@ DB_NAME=optimizer
 # Full async connection string used by the application
 DATABASE_URL=postgresql+asyncpg://optimizer:optimizer@localhost:5433/optimizer
 
-# Data vendor API keys (required when data ingestion is implemented)
-POLYGON_API_KEY=
-TIINGO_API_KEY=
+# Schwab OAuth (required for market data ingest)
+SCHWAB_CLIENT_ID=
+SCHWAB_CLIENT_SECRET=
+SCHWAB_CALLBACK_URL=https://127.0.0.1:5000/callback
+
+# FRED (required for risk-free rate ingest)
 FRED_API_KEY=
 ```
 
@@ -62,10 +65,13 @@ pip install -e ".[dev]"
 # Start Postgres
 docker compose up db -d
 
+# Generate new migration
+alembic revision --autogenerate "revision description"
+
 # Apply all migrations
 alembic upgrade head
 
-# Verify all 24 tables were created
+# Verify all 25 tables were created
 docker compose exec db psql -U optimizer -d optimizer -c "\dt"
 
 # Spot-check a specific table's columns and constraints
@@ -129,9 +135,26 @@ python -m pytest --cov=src --cov-report=html
 | `BacktestRepository` | `get_by_id`, `list`, `create`, `get_points`, `get_summary` |
 | `ScenarioRepository` | `get_by_id`, `list`, `create_definition`, `create_result`, `get_result` |
 
+### Vendor Adapters — `src/infrastructure/vendors/`
+
+| Module | What it does |
+|---|---|
+| `base.py` | `VendorAdapter` ABC — contract all market-data adapters implement |
+| `schemas.py` | `VendorPriceBar` — raw OHLC DTO returned by adapters before domain mapping |
+| `schwab.py` | `SchwabAdapter` — Schwab MarketData v1 (price history, quotes, instrument search) |
+| `fred.py` | `FredAdapter` — FRED risk-free rate series (DTB3 default) |
+| `exceptions.py` | `VendorError`, `AuthenticationRequired`, `RateLimitError`, `TickerNotFoundError` |
+
+### Auth — `src/infrastructure/auth/`
+
+| Module | What it does |
+|---|---|
+| `schwab_oauth.py` | `SchwabOAuthService` — full OAuth 2.0 authorization-code flow (connect, callback, auto-refresh, disconnect) |
+| `token_repository.py` | `ITokenRepository` (Protocol for DIP) + `SqlTokenRepository` (upserts to `oauth_tokens` table) |
+
 ### Database Schema — `alembic/`
 
-24-table Postgres schema covering all five data layers: reference, market data, estimation, portfolio, and simulation. See `docs/DB-SCHEMA.md` and `docs/ER-DIAGRAM.md` for full detail.
+25-table Postgres schema covering all five data layers: reference, market data, estimation, portfolio, and simulation, plus the `oauth_tokens` auth table. See `docs/DB-SCHEMA.md` and `docs/ER-DIAGRAM.md` for full detail.
 
 ---
 
@@ -144,13 +167,15 @@ src/
 │   └── repositories/    # Abstract data-access interfaces (ABC)
 ├── infrastructure/
 │   ├── persistence/     # SQLAlchemy repository implementations (in progress)
-│   └── vendors/         # External API adapters: Polygon, Tiingo, FRED (in progress)
+│   ├── vendors/         # External API adapters: SchwabAdapter, FredAdapter
+│   └── auth/            # OAuth 2.0 flow: SchwabOAuthService, SqlTokenRepository
 └── main.py              # FastAPI application entry point (in progress)
 
 ui/                      # Streamlit front-end (in progress)
 tests/
 ├── unit/
-│   └── domain/          # Domain model and repository interface tests
+│   ├── domain/          # Domain model and repository interface tests
+│   └── infrastructure/  # Vendor adapter and auth service tests
 └── integration/         # DB-backed integration tests (in progress)
 docs/                    # Specifications: requirements, schema, API contract, UI spec
 alembic/                 # Database migrations
