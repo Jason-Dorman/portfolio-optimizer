@@ -39,7 +39,7 @@ A personal-use application that:
 - All endpoints return structured JSON; frontend renders results and explanations
 
 ### B) Data Ingestion Module
-- Provider adapters: Polygon / Tiingo / AlphaVantage + FRED (risk-free rates)
+- Provider adapters: Schwab MarketData API (price history, quotes, instrument search) + FRED (risk-free rates)
 - Pulls adjusted close prices; records dividend/split metadata where available
 - Writes price bars to Postgres with vendor provenance
 - Incremental updates: only fetches missing dates

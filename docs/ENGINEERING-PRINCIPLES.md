@@ -113,15 +113,6 @@ Before committing, ask:
  
 ---
  
-## Class Types in Systems
- 
-**Entities** - Facts/events (Trade, Stock, Transaction)
-**Policies** - Rules/decisions (RiskPolicy, FeeCalculator)  
-**Coordinators** - Workflows (Portfolio, TradeExecutor)
-**Invariant Enforcers** - Correctness (Ledger, Validator)
- 
----
- 
 ## Refactoring Safety Rules
  
 1. Understand current behavior FIRST
@@ -200,15 +191,10 @@ Before committing, ask:
 2. **Write a test** - Understand current behavior
 3. **Make it work** - Get it functioning
 4. **Make it right** - Apply principles
-5. **Make it fast** - Only if needed
- 
-**"Make it work, make it right, make it fast" - in that order**
- 
----
  
 ## Remember
  
 > Software systems are collections of decisions.  
 > Good design makes those decisions visible, discussable, and changeable.
  
-**The best code is code that's easy to change.**
+**The best code is code that's simple, elegant, easy to change.**
