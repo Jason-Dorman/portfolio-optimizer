@@ -39,7 +39,7 @@
 | Column | Type | Notes |
 |---|---|---|
 | vendor_id | uuid PK | |
-| name | text UNIQUE | e.g., Polygon, Tiingo, AlphaVantage, FRED |
+| name | text UNIQUE | e.g., Schwab, FRED |
 | notes | text | |
 
 ---
@@ -96,6 +96,7 @@ Indexes: (asset_id, bar_date DESC), (frequency, bar_date DESC)
 | rf_annual | double precision | Annualized rate |
 
 Index: (obs_date DESC)
+Unique constraint: (source, series_code, obs_date) — natural key; enables upsert semantics on ingest.
 
 ---
 

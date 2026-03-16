@@ -16,6 +16,7 @@ def _concrete() -> UniverseRepository:
         async def delete(self, id): return None
         async def add_assets(self, universe_id, asset_ids, is_benchmark=False): return "updated"
         async def remove_assets(self, universe_id, asset_ids): return "updated"
+        async def get_asset_ids(self, universe_id): return ["id1"]
 
     return _Impl()
 
@@ -42,3 +43,8 @@ def test_universe_repository_add_assets_returns_updated():
 def test_universe_repository_remove_assets_returns_updated():
     result = asyncio.run(_concrete().remove_assets(uuid4(), [uuid4()]))
     assert result == "updated"
+
+
+def test_universe_repository_get_asset_ids():
+    result = asyncio.run(_concrete().get_asset_ids(uuid4()))
+    assert result == ["id1"]

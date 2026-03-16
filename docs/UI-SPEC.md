@@ -536,7 +536,7 @@ This document specifies the user interface for the Portfolio Builder & Risk Anal
 │  ┌─────────────────────────────────────────────────────────────┐│
 │  │ Schedule: [Daily at 6:00 AM ▼]                              ││
 │  │ Last Refresh: 2024-01-15 06:00 (Success)                    ││
-│  │ Data Vendor: Polygon                                         ││
+│  │ Data Vendor: Schwab                                          ││
 │  │                                        [Refresh Now] [Logs] ││
 │  └─────────────────────────────────────────────────────────────┘│
 │                                                                 │
