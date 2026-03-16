@@ -15,6 +15,7 @@ def _concrete() -> AssumptionRepository:
         async def update(self, entity): return entity
         async def delete(self, id): return None
         async def get_covariance_matrix(self, assumption_id): return "cov"
+        async def get_asset_stats(self, assumption_id): return ["stats"]
         async def get_correlation_matrix(self, assumption_id): return "corr"
 
     return _Impl()
@@ -42,3 +43,8 @@ def test_assumption_repository_get_covariance_matrix():
 def test_assumption_repository_get_correlation_matrix():
     result = asyncio.run(_concrete().get_correlation_matrix(uuid4()))
     assert result == "corr"
+
+
+def test_assumption_repository_get_asset_stats():
+    result = asyncio.run(_concrete().get_asset_stats(uuid4()))
+    assert result == ["stats"]

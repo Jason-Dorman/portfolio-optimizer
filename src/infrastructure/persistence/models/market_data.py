@@ -6,7 +6,7 @@ import uuid
 from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import BigInteger, Date, DateTime, Double, ForeignKey, Index, Text, func
+from sqlalchemy import BigInteger, Date, DateTime, Double, ForeignKey, Index, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -70,7 +70,10 @@ class RiskFreeSeries(Base):
     """Risk-free rate observations (e.g. FRED T-bill series DTB3)."""
 
     __tablename__ = "risk_free_series"
-    __table_args__ = (Index("ix_risk_free_series_obs_date", "obs_date"),)
+    __table_args__ = (
+        Index("ix_risk_free_series_obs_date", "obs_date"),
+        UniqueConstraint("source", "series_code", "obs_date", name="uq_risk_free_series_natural_key"),
+    )
 
     series_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4

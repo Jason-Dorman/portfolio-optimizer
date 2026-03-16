@@ -113,3 +113,11 @@ class SqlUniverseRepository(UniverseRepository):
         if universe is None:
             raise ValueError(f"Universe {universe_id} not found")
         return universe
+
+    async def get_asset_ids(self, universe_id: UUID) -> list[UUID]:
+        stmt = select(OrmUniverseAsset.asset_id).where(
+            OrmUniverseAsset.universe_id == universe_id,
+            OrmUniverseAsset.is_benchmark.is_(False),
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars())

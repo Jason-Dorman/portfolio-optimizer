@@ -2035,9 +2035,13 @@ app/
 └── infrastructure/
     ├── database.py            # SQLAlchemy/asyncpg setup
     ├── vendors/               # External API adapters
-    │   ├── polygon.py
-    │   ├── tiingo.py
-    │   └── fred.py
+    │   ├── base.py
+    │   ├── schwab.py
+    │   ├── fred.py
+    │   └── schemas.py
+    ├── auth/                  # OAuth token management
+    │   ├── schwab_oauth.py
+    │   └── token_repository.py
     └── persistence/           # Repository implementations
 ```
 

@@ -61,6 +61,10 @@ class AssumptionRepository(Repository[AssumptionSet]):
         """Return the full upper-triangle covariance matrix, or None."""
 
     @abstractmethod
+    async def get_asset_stats(self, assumption_id: UUID) -> list[AssetStats]:
+        """Return all per-asset µ and σ records for the assumption set (empty list if not found)."""
+
+    @abstractmethod
     async def get_correlation_matrix(self, assumption_id: UUID) -> CorrelationMatrix | None:
         """Return the full upper-triangle correlation matrix, or None.
 

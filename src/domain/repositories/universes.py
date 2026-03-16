@@ -54,3 +54,7 @@ class UniverseRepository(Repository[Universe]):
         asset_ids: list[UUID],
     ) -> Universe:
         """Remove assets from the universe membership table and return the updated universe."""
+
+    @abstractmethod
+    async def get_asset_ids(self, universe_id: UUID) -> list[UUID]:
+        """Return ordered list of asset UUIDs belonging to the universe (excludes benchmarks)."""

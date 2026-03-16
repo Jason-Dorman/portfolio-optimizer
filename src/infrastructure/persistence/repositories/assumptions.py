@@ -121,6 +121,19 @@ class SqlAssumptionRepository(AssumptionRepository):
     async def delete(self, id: UUID) -> None:
         raise NotImplementedError("AssumptionSets are immutable; create a new version")
 
+    async def get_asset_stats(self, assumption_id: UUID) -> list[DomainAssetStats]:
+        stmt = select(OrmAssetStat).where(OrmAssetStat.assumption_id == assumption_id)
+        result = await self._session.execute(stmt)
+        return [
+            DomainAssetStats(
+                assumption_id=row.assumption_id,
+                asset_id=row.asset_id,
+                mu_annual=row.mu_annual,
+                sigma_annual=row.sigma_annual,
+            )
+            for row in result.scalars()
+        ]
+
     async def get_covariance_matrix(self, assumption_id: UUID) -> CovarianceMatrix | None:
         exists_stmt = select(OrmAssumptionSet).where(
             OrmAssumptionSet.assumption_id == assumption_id
